@@ -1,0 +1,49 @@
+name: asdf-java on Cygwin
+on:
+  push:
+    branches:
+    - cygwin
+  pull_request:
+    branches:
+    - master
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      TERM: dumb
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Cygwin
+      uses: egor-tensin/setup-cygwin@v3
+      with:
+        platform: x64
+        packages: jq
+    - name: Install asdf
+      uses: actions/checkout@v2
+      with:
+        repository: asdf-vm/asdf
+        path: asdf
+    - name: PWD
+      run: pwd
+    - name: Check update_data.bash
+      env:
+        GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        uname -a
+        echo "Workspace: $GITHUB_WORKSPACE"
+        set -x
+        cd $GITHUB_WORKSPACE
+        bash -x update_data.bash
+        grep -q adoptopenjdk-openj9-11 data/jdk-windows-x86_64.tsv
+        echo "Found adoptopenjdk-openj9-11"
+        grep -q microsoft-16 data/jdk-windows-aarch64.tsv
+        echo "Found microsoft-16"
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+    - name: Run tests
+      env:
+        GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        source asdf/asdf.sh
+        asdf info
+        asdf plugin-test java "$GITHUB_WORKSPACE" --asdf-plugin-gitref "$GITHUB_SHA" --asdf-tool-version adoptopenjdk-8.0.252+9.1.openj9-0.20.0 java -version
+      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'

@@ -2,7 +2,7 @@ name: asdf-java Tests
 on:
   push:
     branches:
-    - master
+    - cygwin
   pull_request:
     branches:
     - master
